@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord - Larouche Pascal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Importation d'une police professionnelle et moderne */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Styles de la barre latérale pour la gestion sur mobile et desktop */
+        .sidebar {
+            width: 280px;
+            background-color: #fff;
+            padding: 1.5rem 1rem;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 50;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        /* Styles de l'overlay pour mobile */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: none;
+        }
+        .overlay.active {
+            display: block;
+        }
+
+        /* Ajustement du contenu principal pour le desktop */
+        .content-wrapper {
+            flex-grow: 1;
+            padding-left: 0; /* Par défaut sur mobile */
+            transition: padding-left 0.3s ease-in-out;
+        }
+
+        @media (min-width: 1024px) { /* Taillez pour lg (large) */
+            .sidebar {
+                transform: translateX(0); /* Toujours visible sur desktop */
+                position: static;
+            }
+            .content-wrapper {
+                /* Important : sur desktop, le contenu doit être décalé par rapport à la barre latérale (280px) */
+                padding-left: 280px; 
+            }
+            .menu-button {
+                display: none; /* Cache le bouton du menu sur desktop */
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="overlay" onclick="toggleSidebar(false)"></div>
+
+    <aside id="sidebar" class="sidebar lg:block">
+        <div class="flex flex-col h-full">
+            <div class="mb-8">
+                <img src="CA_credit_agricole_01_color_RVB.png" alt="Logo de la Banque" class="h-10 w-auto mb-2">
+                <h2 class="text-lg font-bold text-gray-800">Ma Banque Digitale</h2>
+            </div>
+            
+            <div class="flex-grow">
+                <nav class="space-y-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg bg-green-100 text-green-700 font-medium hover:bg-green-200 transition" 
+                       onclick="showDetails('Vue d\'ensemble', 'Ceci est votre page d\'accueil. Elle vous donne un aperçu rapide de tous vos avoirs et engagements financiers.')">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l-7-7m7 7v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        Vue d'ensemble
+                    </a>
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+                       onclick="showDetails('Comptes & Cartes', 'Aperçu de vos comptes courants (y compris le Solde Bloqué), comptes joints et cartes de débit/crédit. Vous y trouverez vos relevés et plafonds.')">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        Comptes & Cartes
+                    </a>
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+                       onclick="showDetails('Virements', 'Effectuez des virements ponctuels ou permanents, gérez vos bénéficiaires et consultez l\'historique de vos transferts.')">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                        Virements
+                    </a>
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+                       onclick="showDetails('Épargne', 'Consultez les détails de votre Livret A et de votre Plan d\'Épargne Logement (PEL). Simulez de nouveaux placements.')">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V9a1 1 0 100-2v1m0 8v1a1 1 0 100 2v-1m0-8h1a1 1 0 100-2h-1m0 10h-1a1 1 0 100 2h1m-7 0h14a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Épargne
+                    </a>
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+                       onclick="showDetails('Crédits', 'Accédez aux tableaux d\'amortissement de vos crédits. Faites une simulation de rachat de crédit ou de nouveau prêt.')">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Crédits
+                    </a>
+                </nav>
+            </div>
+            
+            <div class="mt-8 pt-4 border-t border-gray-100">
+                <a href="index.html" class="flex items-center p-3 rounded-lg text-red-600 font-medium hover:bg-red-100 transition">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Déconnexion
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <div class="content-wrapper">
+        <button class="menu-button fixed top-4 left-4 p-2 bg-white rounded-full shadow-lg lg:hidden z-60" onclick="toggleSidebar()">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        
+        <main class="flex-1 p-6 lg:p-10">
+            <header class="mb-8 pt-10 lg:pt-0"> <h1 class="text-3xl font-bold text-gray-800">Bonjour, Larouche Pascal 👋</h1>
+                <p class="text-gray-600 mt-1">Gérez vos comptes et vos opérations en toute sécurité.</p>
+            </header>
+
+            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-10">
+                
+                <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-green-500 cursor-pointer transition duration-300 hover:shadow-lg" 
+                     onclick="showDetails('Détails du Solde Bloqué', 'Ce solde de 98 000 € correspond à un placement à terme. L\'accès aux fonds sera disponible après le paiement des frais de déblocage.\n\nCe compte génère un intérêt annuel de 2.5%.')">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-gray-500 flex items-center">
+                            Solde Bloqué
+                            <svg class="w-4 h-4 ml-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v3"></path></svg>
+                        </p>
+                    </div>
+                    <p class="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-1">98 000 €</p>
+                    <p class="text-xs text-gray-400 mt-2">Statut : Bloqué</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-red-500 cursor-pointer transition duration-300 hover:shadow-lg"
+                     onclick="showDetails('Détails du Crédit Immobilier', 'Votre mensualité de -300 € est prélevée chaque mois. Le capital restant dû est de 150 000 €. Le taux d\'intérêt est de 1.2%.')">
+                    <p class="text-sm font-medium text-gray-500">Crédit Immobilier (Échéance)</p>
+                    <p class="text-3xl sm:text-4xl font-extrabold text-red-600 mt-1">-300 €</p>
+                    <p class="text-xs text-gray-400 mt-2">Prochain prélèvement le 01/12/2025</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500 cursor-pointer transition duration-300 hover:shadow-lg"
+                     onclick="showDetails('Détails de l\'Épargne', 'Votre épargne totale de 15 000 € est répartie entre un Livret A (5 000 €) et un PEL (10 000 €). Le rendement moyen est de 1.8%.')">
+                    <p class="text-sm font-medium text-gray-500">Total Épargne</p>
+                    <p class="text-3xl sm:text-4xl font-extrabold text-gray-900 mt-1">15 000 €</p>
+                    <p class="text-xs text-gray-400 mt-2">Détails dans la section "Épargne"</p>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Nos Partenaires</h2>
+                <div id="partners-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+                    </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="detail-popup" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex justify-center items-center z-50 hidden">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md mx-4 transform transition-all duration-300 scale-95 opacity-0" id="detail-popup-content-wrapper">
+            <h3 id="detail-popup-title" class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2"></h3>
+            <p id="detail-popup-content" class="text-gray-700 mb-6 whitespace-pre-line"></p>
+            <button onclick="hideDetails()" class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition duration-300">
+                Fermer
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        /**
+         * Bascule l'ouverture/fermeture de la barre latérale (Menu Mobile).
+         */
+        function toggleSidebar(force) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.overlay');
+            const isOpen = sidebar.classList.contains('open');
+            const shouldToggle = (force === undefined) ? !isOpen : force;
+
+            if (shouldToggle) {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+            } else {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+            }
+        }
+
+        /**
+         * Génère les cartes des partenaires à partir des fichiers fournis.
+         */
+        function renderPartners() {
+            const partners = [
+                { name: 'Caceis', logo: 'caceisblockchainpostmarketsme-768x432.png', details: 'Caceis est notre partenaire pour les services de conservation d\'actifs. Ils gèrent la sécurisation de vos valeurs mobilières.' },
+                { name: 'Crelan', logo: 'crelan_logo.png', details: 'Crelan est une banque coopérative belge avec laquelle nous avons un accord de partenariat pour les transferts internationaux simplifiés.' }
+            ];
+            const container = document.getElementById('partners-container');
+            
+            if (container) {
+                container.innerHTML = partners.map(partner => `
+                    <div class="bg-white p-6 rounded-xl shadow-md flex flex-col items-center cursor-pointer transition duration-300 hover:shadow-lg" 
+                         onclick="showDetails('${partner.name} - Partenaire', '${partner.details}')">
+                        <img src="${partner.logo}" alt="Logo de ${partner.name}" class="h-16 w-auto object-contain mb-4">
+                        <h3 class="font-medium text-gray-700 text-center">${partner.name}</h3>
+                    </div>
+                `).join('');
+            }
+        }
+
+        /**
+         * Affiche les détails dans une popup.
+         */
+        function showDetails(title, content) {
+            const popup = document.getElementById('detail-popup');
+            const contentWrapper = document.getElementById('detail-popup-content-wrapper');
+
+            document.getElementById('detail-popup-title').textContent = title;
+            document.getElementById('detail-popup-content').textContent = content;
+
+            // Afficher la popup avec transition
+            popup.classList.remove('hidden');
+            setTimeout(() => {
+                contentWrapper.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        /**
+         * Masque la popup de détails.
+         */
+        function hideDetails() {
+            const popup = document.getElementById('detail-popup');
+            const contentWrapper = document.getElementById('detail-popup-content-wrapper');
+
+            // Masquer la popup avec transition
+            contentWrapper.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                popup.classList.add('hidden');
+            }, 300); // 300ms correspond à la durée de la transition CSS
+        }
+
+        // Appel de la fonction pour générer les partenaires au chargement de la page
+        document.addEventListener('DOMContentLoaded', renderPartners);
+    </script>
+</body>
+</html>
